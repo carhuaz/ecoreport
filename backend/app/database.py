@@ -1,3 +1,4 @@
+import os
 import sys
 from contextlib import contextmanager
 
@@ -9,14 +10,13 @@ if sys.platform.startswith('win'):
         return pyodbc.connect(CONNECTION_STRING)
 else:
     import pymssql
-    from .config import DB_SERVER, DB_NAME, DB_USER, DB_PASSWORD
 
     def get_connection():
         return pymssql.connect(
-            server=DB_SERVER,
-            database=DB_NAME,
-            user=DB_USER,
-            password=DB_PASSWORD
+            server=os.environ.get("DB_SERVER", "localhost"),
+            database=os.environ.get("DB_NAME", "EcoReportDB"),
+            user=os.environ.get("DB_USER", "sa"),
+            password=os.environ.get("DB_PASSWORD", "continental")
         )
 
 
