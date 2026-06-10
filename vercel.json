@@ -1,6 +1,9 @@
 {
   "framework": "angular",
   "buildCommand": "ng build --configuration production",
-  "outputDirectory": "dist/ecoreport-angular",
-  "installCommand": "npm install"
+  "outputDirectory": "dist/ecoreport-angular/browser",
+  "installCommand": "npm install",
+  "rewrites": [
+    { "source": "/(.*)", "destination": "/index.html" }
+  ]
 }
