@@ -1,0 +1,44 @@
+<div class="page-section">
+  <div class="page-header">
+    <h1>Mis reportes</h1>
+    <p>Historial de reportes que has registrado como ciudadano.</p>
+  </div>
+  <a routerLink="/reportar" class="btn-primary">+ Nuevo reporte</a>
+
+  <div class="list-toolbar" *ngIf="total > 0">
+    <span class="toolbar-total">
+      Mostrando {{ desde }}–{{ hasta }} de <strong>{{ total }}</strong> reportes
+    </span>
+    <label class="page-size-label">
+      Por página
+      <select [(ngModel)]="pageSize" (change)="onPageSizeChange()">
+        <option *ngFor="let s of pageSizes" [value]="s">{{ s }}</option>
+      </select>
+    </label>
+  </div>
+
+  <div class="paginacion" *ngIf="totalPages > 1">
+    <button (click)="irPagina(1)" [disabled]="page === 1" title="Primera">««</button>
+    <button (click)="paginaAnterior()" [disabled]="page === 1" title="Anterior">«</button>
+    <button *ngFor="let p of paginas()" (click)="irPagina(p)" [class.active]="p === page">{{ p }}</button>
+    <button (click)="paginaSiguiente()" [disabled]="page === totalPages" title="Siguiente">»</button>
+    <button (click)="irPagina(totalPages)" [disabled]="page === totalPages" title="Última">»»</button>
+  </div>
+
+  <div class="reportes-grid" *ngIf="reportes.length > 0">
+    <app-card-reporte *ngFor="let r of reportes" [reporte]="r" />
+  </div>
+
+  <div class="paginacion" *ngIf="totalPages > 1">
+    <button (click)="irPagina(1)" [disabled]="page === 1" title="Primera">««</button>
+    <button (click)="paginaAnterior()" [disabled]="page === 1" title="Anterior">«</button>
+    <button *ngFor="let p of paginas()" (click)="irPagina(p)" [class.active]="p === page">{{ p }}</button>
+    <button (click)="paginaSiguiente()" [disabled]="page === totalPages" title="Siguiente">»</button>
+    <button (click)="irPagina(totalPages)" [disabled]="page === totalPages" title="Última">»»</button>
+  </div>
+
+  <div class="empty-state" *ngIf="total === 0">
+    <p>Aún no has registrado ningún reporte.</p>
+    <a routerLink="/reportar" class="btn-primary">Crear mi primer reporte</a>
+  </div>
+</div>
