@@ -65,11 +65,13 @@ def diag():
         info["auth_error"] = repr(e)
     try:
         from .database import fetch_one
-        user = fetch_one("SELECT password FROM usuarios WHERE email = ?", ("admin@ecoreport.pe",))
+        user = fetch_one("SELECT email, password FROM usuarios WHERE email = ?", ("admin@ecoreport.pe",))
         if user:
+            pw = user["password"]
+            info["db_password_prefix"] = pw[:50] + "..."
+            info["db_password_type"] = "pbkdf2" if "pbkdf2" in pw else "bcrypt" if pw.startswith("$2") else "other"
             from .middleware.auth import verify_password
-            info["bcrypt_hash"] = user["password"][:30] + "..."
-            info["bcrypt_verify"] = verify_password("123456", user["password"])
+            info["verify_result"] = verify_password("123456", pw)
     except Exception as e:
-        info["bcrypt_error"] = repr(e)
+        info["verify_error"] = repr(e)
     return info
