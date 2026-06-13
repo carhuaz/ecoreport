@@ -1,20 +1,31 @@
+import hashlib
+import secrets
 from datetime import datetime, timedelta, timezone
 from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from jose import JWTError, jwt
-from passlib.context import CryptContext
 from ..config import SECRET_KEY, ALGORITHM, ACCESS_TOKEN_EXPIRE_MINUTES
 
-pwd_context = CryptContext(schemes=["pbkdf2_sha256", "bcrypt"], deprecated="auto")
 security = HTTPBearer()
 
 
 def hash_password(password: str) -> str:
-    return pwd_context.hash(password)
+    salt = secrets.token_hex(16)
+    key = hashlib.pbkdf2_hmac("sha256", password.encode(), salt.encode(), 29000)
+    return f"$pbkdf2-sha256$29000${salt}${key.hex()}"
 
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
-    return pwd_context.verify(plain_password, hashed_password)
+    if hashed_password.startswith("$2"):
+        import bcrypt
+        return bcrypt.checkpw(plain_password.encode(), hashed_password.encode())
+    parts = hashed_password.split("$")
+    if len(parts) < 5 or parts[1] != "pbkdf2-sha256":
+        return False
+    salt = parts[3]
+    iterations = int(parts[2])
+    key = hashlib.pbkdf2_hmac("sha256", plain_password.encode(), salt.encode(), iterations)
+    return key.hex() == parts[4]
 
 
 def create_access_token(data: dict) -> str:
