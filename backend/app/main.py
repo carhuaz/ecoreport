@@ -61,5 +61,25 @@ def diag():
         info["db_test"] = f"OK - {row[0]}"
         conn.close()
     except Exception as e:
-        info["db_error"] = str(e)
+        info["db_error"] = repr(e)
+    try:
+        import pymssql
+        info["pymssql_paramstyle"] = pymssql.paramstyle
+        conn2 = pymssql.connect(
+            server=os.environ["DB_SERVER"],
+            database=os.environ["DB_NAME"],
+            user=os.environ["DB_USER"],
+            password=os.environ["DB_PASSWORD"],
+            tds_version="7.4",
+            timeout=10,
+            login_timeout=10
+        )
+        cursor = conn2.cursor()
+        cursor.execute("SELECT id, nombre, email FROM usuarios WHERE email = %s", ("admin@ecoreport.pe",))
+        cols = [col[0] for col in cursor.description]
+        row = cursor.fetchone()
+        info["db_query_test"] = dict(zip(cols, row)) if row else "no rows"
+        conn2.close()
+    except Exception as e:
+        info["db_query_error"] = repr(e)
     return info
