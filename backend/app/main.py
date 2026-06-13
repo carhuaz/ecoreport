@@ -34,7 +34,7 @@ def health():
 
 @app.get("/api/diag")
 def diag():
-    import sys, importlib
+    import sys, os
     info = {
         "python": sys.version,
         "platform": sys.platform,
@@ -45,17 +45,21 @@ def diag():
     }
     try:
         import pymssql
-        info["pymssql"] = pymssql.__version__
+        info["pymssql_version"] = pymssql.__version__
+        conn = pymssql.connect(
+            server=os.environ["DB_SERVER"],
+            database=os.environ["DB_NAME"],
+            user=os.environ["DB_USER"],
+            password=os.environ["DB_PASSWORD"],
+            tds_version="7.4",
+            timeout=10,
+            login_timeout=10
+        )
+        cursor = conn.cursor()
+        cursor.execute("SELECT 1 AS test")
+        row = cursor.fetchone()
+        info["db_test"] = f"OK - {row[0]}"
+        conn.close()
     except Exception as e:
-        info["pymssql"] = f"error: {e}"
-    try:
-        import pyodbc
-        info["pyodbc"] = pyodbc.version
-    except Exception as e:
-        info["pyodbc"] = f"error: {e}"
-    try:
-        from .config import CONNECTION_STRING
-        info["connection_string_prefix"] = CONNECTION_STRING[:60]
-    except Exception as e:
-        info["config_error"] = str(e)
+        info["db_error"] = str(e)
     return info
