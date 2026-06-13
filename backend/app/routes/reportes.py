@@ -1,6 +1,6 @@
 from fastapi import APIRouter, HTTPException, Depends, Query
 from typing import Optional
-from ..database import fetch_all, fetch_one, execute
+from ..database import fetch_all, fetch_one, execute, execute_returning_id
 from ..schemas.reporte import ReporteCreate, ReporteUpdate, PrioridadRequest, AsignarCuadrillaRequest, ValidacionRequest
 from ..middleware.auth import get_current_user_id, get_current_user_role, require_roles
 import json
@@ -164,7 +164,7 @@ def crear_reporte(req: ReporteCreate, user_id: int = Depends(get_current_user_id
     ciudadano_id_val = None if req.anonimo else user_id
     nombre_usuario = "Anónimo" if req.anonimo else (fetch_one("SELECT nombre FROM usuarios WHERE id = ?", (user_id,)) or {}).get("nombre", "Ciudadano")
 
-    reporte_id = execute(
+    reporte_id = execute_returning_id(
         """INSERT INTO reportes (titulo, descripcion, distrito, direccion, latitud, longitud, imagenes, ciudadano_id, prioridad, puntaje_prioridad, criterios_prioridad, anonimo)
            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
         (req.titulo, req.descripcion, req.distrito, req.direccion, req.latitud, req.longitud, imagenes_json, ciudadano_id_val,

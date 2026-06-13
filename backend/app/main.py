@@ -1,4 +1,6 @@
+import os
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 
 from .routes import auth, reportes, usuarios, cuadrillas, estadisticas, mapa
 
@@ -8,8 +10,14 @@ app = FastAPI(
     version="1.0.0"
 )
 
-# CORS manejado por Azure App Service (API > CORS)
-# Para desarrollo local, usar proxy o extensión de navegador
+origins = os.getenv("CORS_ORIGINS", "*").split(",")
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 app.include_router(auth.router)
 app.include_router(reportes.router)
