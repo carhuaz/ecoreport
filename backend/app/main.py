@@ -38,48 +38,20 @@ def diag():
     info = {
         "python": sys.version,
         "platform": sys.platform,
-        "db_server": os.getenv("DB_SERVER", "no-set"),
-        "db_name": os.getenv("DB_NAME", "no-set"),
-        "db_user": os.getenv("DB_USER", "no-set"),
+        "env_ok": {k: os.getenv(k) for k in ["DB_SERVER", "DB_NAME", "DB_USER"]},
         "cors_origins": os.getenv("CORS_ORIGINS", "no-set"),
     }
+    info["db_has_password"] = "yes" if os.getenv("DB_PASSWORD") else "no"
     try:
-        import pymssql
-        info["pymssql_version"] = pymssql.__version__
-        conn = pymssql.connect(
-            server=os.environ["DB_SERVER"],
-            database=os.environ["DB_NAME"],
-            user=os.environ["DB_USER"],
-            password=os.environ["DB_PASSWORD"],
-            tds_version="7.4",
-            timeout=10,
-            login_timeout=10
-        )
-        cursor = conn.cursor()
-        cursor.execute("SELECT 1 AS test")
-        row = cursor.fetchone()
-        info["db_test"] = f"OK - {row[0]}"
-        conn.close()
+        from .database import fetch_one
+        row = fetch_one("SELECT id, nombre, email FROM usuarios WHERE email = ?", ("admin@ecoreport.pe",))
+        info["fetch_one_test"] = row
     except Exception as e:
-        info["db_error"] = repr(e)
+        info["fetch_one_error"] = repr(e)
     try:
-        import pymssql
-        info["pymssql_paramstyle"] = pymssql.paramstyle
-        conn2 = pymssql.connect(
-            server=os.environ["DB_SERVER"],
-            database=os.environ["DB_NAME"],
-            user=os.environ["DB_USER"],
-            password=os.environ["DB_PASSWORD"],
-            tds_version="7.4",
-            timeout=10,
-            login_timeout=10
-        )
-        cursor = conn2.cursor()
-        cursor.execute("SELECT id, nombre, email FROM usuarios WHERE email = %s", ("admin@ecoreport.pe",))
-        cols = [col[0] for col in cursor.description]
-        row = cursor.fetchone()
-        info["db_query_test"] = dict(zip(cols, row)) if row else "no rows"
-        conn2.close()
+        from .database import fetch_all
+        rows = fetch_all("SELECT id, nombre, email FROM usuarios")
+        info["fetch_all_test"] = f"{len(rows)} usuarios"
     except Exception as e:
-        info["db_query_error"] = repr(e)
+        info["fetch_all_error"] = repr(e)
     return info
