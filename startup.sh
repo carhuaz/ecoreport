@@ -1,9 +1,6 @@
 #!/bin/bash
 set -e
 
-echo "=== Instalando dependencias del sistema (FreeTDS para pymssql) ==="
-apt-get update && apt-get install -y freetds-dev libsybdb5
-
 echo "=== Instalando dependencias de Python ==="
 pip install -r requirements.txt
 
