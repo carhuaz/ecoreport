@@ -54,4 +54,20 @@ def diag():
         info["fetch_all_test"] = f"{len(rows)} usuarios"
     except Exception as e:
         info["fetch_all_error"] = repr(e)
+    try:
+        from .middleware.auth import hash_password, verify_password, create_access_token
+        from .schemas.auth import AuthResponse
+        hashed = hash_password("123456")
+        info["bcrypt_test"] = verify_password("123456", hashed)
+        token = create_access_token({"id": 1, "rol": "Admin"})
+        info["jwt_test"] = f"token_ok:{len(token)}"
+        resp = AuthResponse(id=1, nombre="Test", email="t@t.com", rol="Admin", activo=True, token=token)
+        info["pydantic_test"] = resp.model_dump()["rol"]
+    except Exception as e:
+        info["auth_error"] = repr(e)
+    try:
+        from .routes.auth import login
+        info["import_login"] = "ok"
+    except Exception as e:
+        info["import_login_error"] = repr(e)
     return info
